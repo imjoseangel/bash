@@ -1,0 +1,46 @@
+#! /bin/sh
+#
+# DNIe daemon start/stop script.
+#
+# Written by José Ángel Muñoz <josea.munoz@gmail.com>.
+
+# Make sure only root can run our script
+
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run with sudo" 1>&2
+   exit 1
+fi
+
+
+NAME=pcscd
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/sbin
+DAEMON=/usr/local/sbin/${NAME}
+DESC="DNIe Reader daemon"
+
+test -f $DAEMON || exit 0
+
+set -e
+
+case "$1" in
+  start)
+	echo "Starting $DESC: $NAME"
+	start-stop-daemon --oknodo --start \
+		--exec $DAEMON
+	;;
+  stop)
+	echo "Stopping $DESC: $NAME"
+	start-stop-daemon --oknodo --stop \
+		--exec $DAEMON
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
