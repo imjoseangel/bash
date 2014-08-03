@@ -1,0 +1,20 @@
+#!/opt/local/bin/expect
+
+#read the input parameters
+set host [lindex $argv 0]
+set port [lindex $argv 1]
+set user [lindex $argv 2]
+set pass [lindex $argv 3]
+
+
+#set global parameters
+
+
+spawn sftp -P ${port} ${user}@${host}
+expect "connecting (yes/no)?" { send "yes\n"; expect "assword:" }        "assword:"
+send "${pass}\n"
+expect "sftp>"
+send "ls\n"
+expect "sftp>"
+send "quit\n"
+exit
