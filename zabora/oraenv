@@ -1,0 +1,4 @@
+export ORACLE_HOME=/opt/oracle/product/10.2.0/db_1
+export ORACLE_SID=SID
+export PATH=/usr/bin:/usr/sbin/:$ORACLE_HOME/bin
+export NLS_LANG=american_cis.cl8mswin1251

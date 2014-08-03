@@ -1,0 +1,2 @@
+#!/bin/bash
+/etc/zabbix/zabora/zabora tablespaceuse | grep -i $1 | awk -F' ' '{print $2}' 
