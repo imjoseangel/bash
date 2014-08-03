@@ -1,0 +1,234 @@
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 09:38:00
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 12:44:39
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 12:44:50
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12532, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=0.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 12:45:50
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12532
+    TNS-12532: TNS:invalid argument
+    ns secondary err code: 12560
+    nt main err code: 502
+    TNS-00502: Invalid argument
+    nt secondary err code: 22
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12532, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=0.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 12:46:50
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12532
+    TNS-12532: TNS:invalid argument
+    ns secondary err code: 12560
+    nt main err code: 502
+    TNS-00502: Invalid argument
+    nt secondary err code: 22
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12532, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=0.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 12:54:00
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12532
+    TNS-12532: TNS:invalid argument
+    ns secondary err code: 12560
+    nt main err code: 502
+    TNS-00502: Invalid argument
+    nt secondary err code: 22
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12528, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 13:29:53
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12541, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 18-AUG-2011 16:01:56
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12541
+    TNS-12541: TNS:no listener
+    ns secondary err code: 12560
+    nt main err code: 511
+    TNS-00511: No listener
+    nt secondary err code: 111
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 19-AUG-2011 10:56:17
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 19-AUG-2011 10:56:48
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=downstream:1522)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1521)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 19-AUG-2011 10:57:58
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+    nt OS err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12514, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=transaction)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1522)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 19-AUG-2011 11:14:30
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0
+
+
+***********************************************************************
+Fatal NI connect error 12528, connecting to:
+ (DESCRIPTION=(CONNECT_DATA=(SERVICE_NAME=transaction)(CID=(PROGRAM=sqlplus)(HOST=stage.prod)(USER=replica)))(ADDRESS=(PROTOCOL=TCP)(HOST=10.100.45.27)(PORT=1522)))
+
+  VERSION INFORMATION:
+	TNS for Linux: Version 10.2.0.5.0 - Production
+	TCP/IP NT Protocol Adapter for Linux: Version 10.2.0.5.0 - Production
+  Time: 19-AUG-2011 11:18:44
+  Tracing not turned on.
+  Tns error struct:
+    ns main err code: 12564
+    TNS-12564: TNS:connection refused
+    ns secondary err code: 0
+    nt main err code: 0
+    nt secondary err code: 0

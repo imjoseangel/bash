@@ -1,0 +1,693 @@
+# /bin/bash
+#
+# ---------------------------------------------------------------------------
+# J.Munoz -+- 3rd November 2004
+# Rewritten to simplify and remove common code
+# ----------------------------------------------------------------------------
+#
+# define global menu settings
+export tmpdir="/tmp/maintenance"
+if [ ! -e ${tmpdir} ]; then
+  mkdir -p ${tmpdir}
+fi
+if [ ! -f ${tmpdir}/backtitle ]; then 
+    echo " Release 1.0" > ${tmpdir}/backtitle
+fi 
+export backtitle="Replica Menus (c)"`cat ${tmpdir}/backtitle`
+export box_height=17
+export box_width=45
+export menu_height=10
+export timeout=180
+#messages logging
+export logging=on
+export backup_dir="/opt/backup"
+#run sql-command password
+export sql_pwd="xxKpyKVwRBo6M"
+
+export downstream_logs="/opt/downstream/app/Server/logs/"
+export upstream_logs="/opt/upstream/app/Server/logs/"
+export LOG_FILE="/home/maintenance/maintenance.log"
+
+export SUCCESS=0
+export FAILURE=1
+
+# clean up and exit
+clean_up() 
+{
+  clear
+  rm -f ${tmpdir}/*
+  exit
+}
+
+#  make sure log file can be accessed by maintenance user
+if [ -f ${LOG_FILE} ]; then 
+    sudo /bin/chown maintenance.root ${LOG_FILE}
+    sudo /bin/chmod 644 ${LOG_FILE}
+fi
+
+log_message () {
+
+
+    [ "${logging}" = "on" ] && echo "$(date) - $1" >> ${LOG_FILE}
+
+}
+
+
+#
+#-------------------------------------------------------------------------------
+# Show file with full view / tail select
+#
+# parameters : TITLE = menu title
+#              FILE = file to show
+
+view_file()
+{
+  TITLE=$1
+  FILE=$2
+
+  if [ "${FILE}" == "none" ]; then 
+    message_box "This daemon does not have any log files to view."
+  else
+    /usr/bin/test -f ${FILE}
+    if [ $? -eq 1 ]; then
+      message_box " File ${FILE} trying to view not found"
+      return 1;
+    fi
+    HELP=`cat ./help.txt`
+    TEMP=/${tmpdir}/answer$$
+
+    dialog \
+  	--timeout $timeout \
+  	--backtitle $"$backtitle"\
+  	--title $TITLE \
+  	--nocancel \
+	--item-help \
+	--menu "Choose an option:" $box_height $box_width $menu_height\
+  1	"View Entire Log" "Shows the entire file" \
+  2	"View Log Tail"   "Output appended data as file grows" \
+  3     "View Old logs"   "Check older log files" \
+  4	"Help"            "Available functions when viewing files" \
+  0	"Return"          "Return to previous menu" 2>$TEMP
+
+    CHOICE=`cat $TEMP`
+
+   clear
+   case $CHOICE in
+
+     1) /usr/bin/dialog \
+	--timeout 450 \
+	--textbox $FILE 0 0;;
+
+     2) /usr/bin/dialog \
+	--timeout 1800 \
+	--tailbox $FILE 0 0;;
+
+   3)
+      oldlogs ${FILE};;
+
+     4) dialog \
+   	--timeout 180 \
+	--ok-label "Now I know" \
+	--no-collapse \
+	--msgbox $"`cat ./help.txt`" 0 0 2>/dev/null
+    esac
+  fi
+}
+
+change_daemon() {
+  DAEMON=$1
+  ORIG_RUNLEVELS=$2
+  CHANGE=$3
+  MESSAGE=$4
+
+  RUNLEVELS=`echo $ORIG_RUNLEVELS | tr -d "\,"`
+  RETVAL=10
+  backtitle="Adding $DAEMON to runlevels"
+  [ "${CHANGE}" == "off" ] && backtitle="Removing $DAEMON from runlevels."
+
+  if [ "${DAEMON}" == "" ]; then
+    message_box "You must specify a daemon name."
+  elif [ "${RUNLEVELS}" == "" ]; then
+    MSG="No runlevels specified to add $DAEMON to."
+    [ "${CHANGE}" == "off" ] && MSG="No runlevels specified to delete $DAEMON from."
+
+    message_box "$MSG"
+  else
+    # Warning message specified, show it
+    if [ "${MESSAGE}" != "" ]; then
+      yesno "$MESSAGE\n\nContinue?"
+      if [ $? -eq 0 ]; then
+        sudo /sbin/chkconfig --levels ${RUNLEVELS} ${DAEMON} ${CHANGE} 2> /tmp/output
+        RETVAL=$?
+      fi
+    else
+      # Do it anyways, no warnings
+      sudo /sbin/chkconfig --levels ${RUNLEVELS} ${DAEMON} ${CHANGE} 2> /tmp/output
+      RETVAL=$?
+    fi
+
+    if [ ${RETVAL} -eq 0 ]; then
+      MSG="Adding daemon $DAEMON to runlevels $ORIG_RUNLEVELS"
+      [ "${CHANGE}" == "off" ] && MSG="Removing daemon $DAEMON from runlevels $ORIG_RUNLEVELS."
+   
+      message_box "${MSG}"
+    elif [ ${RETVAL} -eq 10 ]; then
+      message_box "Runlevels unchanged for daemon $DAEMON."
+    else
+ 
+      MSG="There has been a problem adding daemon $DAEMON to runlevels $ORIG_RUNLEVELS"
+      [ "${CHANGE}" == "off" ] && MSG="There has been a problem removing daemon $DAEMON from runlevels $ORIG_RUNLEVELS"
+      message_box "${MSG}"
+    fi
+  fi
+}
+
+
+# Takes three parameters
+# Parameter 1 is the name of daemon
+# Parameter 2 is a comma seperated list of runlevels to delete
+# the daemon to.
+# Parameter 3 is a message that is displayed prior to changing runlevels
+del_daemon () {
+  DAEMON="$1"
+  ORIG_RUNLEVELS="$2"
+  MESSAGE="$3"
+
+  change_daemon "$DAEMON" "$ORIG_RUNLEVELS" "off" "$MESSAGE"
+}
+
+# Takes three parameters
+# Parameter 1 is the name of daemon
+# Parameter 2 is a comma seperated list of runlevels to add
+# the daemon to.
+# Parameter 3 is a message that is displayed prior to changing runlevels
+add_daemon () {
+  DAEMON=$1
+  ORIG_RUNLEVELS="$2"
+  MESSAGE="$3"
+
+  change_daemon "$DAEMON" "$ORIG_RUNLEVELS" "on" "$MESSAGE"
+}
+
+
+oldlogs () {
+                                                                                
+  FULL_PATH=$1
+  DIRECTORY=`dirname $FULL_PATH`
+  FILE=`basename $FULL_PATH`
+  SUCCESS=0
+  files=''
+                                                                                
+  #if no files found stop here
+  if [ -z $(ls ${DIRECTORY}/${FILE}.*) ]; then
+    message_box "No old logfiles found"
+    return 1
+  fi
+                                                                                
+  #build file list
+  for file in ${DIRECTORY}/${FILE}.*
+   do
+    files=${files}" "${file##/*/}" \" \" "
+   done
+
+  #Display files & allow selection
+  dialog \
+     --clear \
+     --timeout ${timeout} \
+     --backtitle $"${backtitle}" \
+     --radiolist "Chose file using the arrow keys,\nuse <space> to select" 15 60 7 ${files} 2>${TEMP}
+                                                                                
+  choice=$(< ${TEMP})
+                                                                                
+  if [ "${choice}" = "" ]; then choice="None"; fi
+  if [ -s ${DIRECTORY}/${choice} ]; then
+                                                                                
+  info_box "Preparing file"
+                                                                                
+  #Check if file is compressed
+  if [ ${choice##*.} = "gz" ]; then
+    sudo /bin/zcat ${DIRECTORY}/${choice} | tail -10000 > /tmp/${choice%.gz} ;
+    choice=${choice%.gz} ;
+   else
+    tail -10000 ${DIRECTORY}/${choice} > /tmp/${choice} ;
+  fi
+                                                                                
+  #show file
+  dialog \
+     --timeout 450 \
+     --textbox /tmp/${choice} 0 0
+
+ fi
+
+  #remove temp file
+  [ -f /tmp/${choice} ] && rm -f /tmp/${choice}
+                                                                                
+}
+
+
+#
+#-------------------------------------------------------------------------------
+#
+info_box ()
+{
+  message=$1
+  length=${#message}
+  dialog \
+    --timeout $timeout \
+	--backtitle $"$backtitle"\
+ 	--infobox $"$message" 3 $((length+5)) 2>/dev/null
+}
+#
+#-------------------------------------------------------------------------------
+#
+message_box ()
+{
+  message=$1
+  length=${#message}
+  dialog \
+	--clear \
+	--timeout $timeout \
+	--backtitle $"$backtitle"\
+	--msgbox $"$message" 6 $((length+5)) 2>/dev/null
+
+}
+#
+#-------------------------------------------------------------------------------
+#
+show_file ()
+{
+  FILE=$1
+  /usr/bin/dialog \
+	--clear \
+	--timeout $timeout \
+	--backtitle $"$backtitle"\
+	--textbox $FILE 0 0 2>/dev/null
+}
+
+#
+#-------------------------------------------------------------------------------
+#
+yesno ()
+{
+  if [ -z $1 ]; then
+    MSG="Are you sure ??"
+  else
+    MSG=$1
+  fi
+  dialog \
+	--clear \
+	--timeout 20 \
+	--backtitle $"$backtitle" \
+	--yesno "${MSG}" 0 0 2>/dev/null
+}
+
+#
+#---------------------------------------------------------------------------------
+# Functions used by build menus
+#--------------------------------------------------------------------------------
+
+getID() {
+
+    # -- Get the  ID from the user
+    dialog --timeout $timeout --inputbox "Enter the HUB  ID" 7 30 2> ${tmpdir}/.id
+    result=$?
+    if [ $result -eq ${FAILURE} ] ; then
+        return ${FAILURE};   
+    fi
+    ID=$(cat ${tmpdir}/.id)
+    
+    if [ -z "${ID}" ] ; then
+        getID
+        return $?;
+    fi 
+
+    # -- Validate the ID
+    if [ $ID -lt "$MIN_HUB__ID" ] ; then
+        message_box "You have entered an Invalid HUB  ID - \
+                     You cannot enter a Hub  ID smaller than $MIN_HUB__ID. \
+                     Please try again."
+        getID
+        return $?;
+    fi
+
+    if [ $ID -gt "$MAX_HUB__ID" ] ; then
+        message_box "You have entered an Invalid HUB  ID - \
+                     You cannot enter a Hub  ID greater than $MAX_HUB__ID. \
+                     Please try again."
+        getID
+        return $?;
+    fi
+    
+    return ${SUCCESS};    
+}
+
+manageID() {
+
+    checkIsHESAT
+    checkIsMEDIA
+    
+    if [ ${IS_HESAT} -eq 0 ]; then
+        # -- Get the  id from the DB and set it
+        ID=$(psql -tAqc "select number from ;" 2>/dev/null)
+    fi     
+    
+    if [ ! -z ${ID} ]; then
+        return ${SUCCESS};
+    fi
+     
+    # gets new  id from user
+    getID;
+    result=$?
+    if [ $result -eq ${FAILURE} ] ; then
+        message_box " Exiting ...."
+        return ${FAILURE};
+    fi
+    
+    ID=$(cat ${tmpdir}/.id)
+    log_message "Using ID=${ID}"
+    
+    return ${SUCCESS};
+}
+
+#
+#-------------------------------------------------------------------------------
+#  Exits, if ERROR text is found in the argument file.
+#-------------------------------------------------------------------------------
+#
+errorcheck() {
+    # -- Check for the text "Error" (case insensitive) in the response
+    grep -qi error ${1} &>/dev/null
+    if [ ${?} -eq 0 ] ; then
+        message_box "An ERROR has been encountered e.g. you have entered an Invalid HUB -ID/JAVA MCS error  \
+                     Here is the error"
+        log_message "An ERROR has been encountered e.g. you have entered an Invalid HUB -ID/JAVA MCS error"                     
+        dialog --timeout $timeout --textbox ${1} 15 79
+        exit 1
+    fi
+}
+
+
+
+fetchDataFromMCS() {
+    
+    # -- Get the data from the MCS 
+    # logs info to ${tmpdir}/.config
+    
+    MCS_URL=$1
+    if [ -z ${MCS_URL}]; then
+        log_message "URL is empty. Cannot fetch data from the MCS"
+    fi
+    
+    log_message "Fetching data from the MCS. Using ${MCS_URL}"
+    count=1 
+    while [ ${count} -lt 4 ]
+    do
+        log_message " Attempt - ${count}" 
+        info_box "Fetching data from the MCS. Please wait ... Attempt (${count})"
+        lynx -auth ${MCS_USERNAME}:${MCS_PASSWORD} -dump "http://${MCS_SERVER}:${MCS_PORT}${MCS_URL}" > ${tmpdir}/.config 2>&1
+        if [ ${?} -eq 0 ] ; then
+            break;
+        else
+            count=$[ (${count}) + 1 ];
+            if [ ${count} -lt 4 ] ; then 
+                log_message "Sleeping for 60 seconds";
+                sleep 60;
+            fi    
+        fi;
+    done; 
+
+    if [ ${count} == 4 ]; then 
+        dialog --timeout $timeout --textbox ${tmpdir}/.config 15 79 
+        message_box "Could not retrieve  data from the MCS. Please re-try later"
+        log_message "Could not retrieve  data from the MCS"
+        return ${FAILURE};
+    fi
+    
+    return ${SUCCESS};
+}
+
+#
+#-------------------------------------------------------------------------------
+#  returns 1, if Unavailable text is found in the argument file.
+#-------------------------------------------------------------------------------
+#
+errorUnavailable() {
+    # -- Check for the text "Unavailable" (case insensitive) in the response
+    grep -qi  Unavailable ${1} &>/dev/null
+    if [ ${?} -eq 0 ] ; then
+        dialog --timeout $timeout --textbox ${1} 15 79   
+        log_message "MCS Unavailable"       
+        exit 1
+    fi
+}
+
+#
+#-------------------------------------------------------------------------------
+#  Exits, if Completed text is found in the argument file.
+#-------------------------------------------------------------------------------
+#
+completedcheck() {
+    # -- Check for the text "Completed" (case insensitive) in the response
+    grep -qi Completed ${1} &>/dev/null
+    if [ ${?} -eq 0 ] ; then
+        message_box "${2}"    
+        log_message "${2}"       
+        /bin/chown genesis.genesis /usr/local/genesis/assets/audio/* > /dev/null 2>&1
+        /bin/chown genesis.genesis /usr/local/genesis/assets/films/* > /dev/null 2>&1
+        /bin/chown genesis.genesis /usr/local/genesis/assets/stills/* > /dev/null 2>&1
+        
+        /bin/chmod 644 /usr/local/genesis/assets/audio/* > /dev/null 2>&1
+        /bin/chmod 644 /usr/local/genesis/assets/films/* > /dev/null 2>&1
+        /bin/chmod 644 /usr/local/genesis/assets/stills/* > /dev/null 2>&1
+        
+        # remove user content load lock.
+        [ ! -e ${CONTENT_LOAD_STARTED_LOCK_FILE} ] || rm -f ${CONTENT_LOAD_STARTED_LOCK_FILE}       
+        # disables cron job
+        toggle_cronjob   
+        exit 0
+    fi
+}
+
+startContentLoad() {
+    # -- Locate configuration file for server
+    CONTENTURL=$1
+    echo "CONTENTURL ${CONTENTURL}"
+    # -- Get the content (note that passwords must be in .wgetrc)
+    if [ ! -z "${CONTENTURL}" ] ; then
+        info_box "This takes few minutes. Please wait while we prepare for content load...."
+        cat > ~/.wgetrc << EOF
+login=mcs
+passwd=mcs
+EOF
+        PWD=`pwd`;
+        cd /;
+        sudo /usr/bin/wget -r -l inf -N -nH --cut-dirs=1 -o ${WGET_CONTENTLOADLOG} -P / "${CONTENTURL}"  &
+        cd ${PWD}
+        sleep 10;
+        log_message "Content loading started";
+        touch ${CONTENT_LOAD_STARTED_LOCK_FILE}
+        feedback "${ID}";
+        message_box "Content Loading started.\nPlease use option Tail Status for more info."
+        # enables cron job
+        toggle_cronjob
+        echo  "${ID}" > ${ID_DATA_LOCK_FILE}
+    else 
+        message_box "Could not get content url from MCS."
+    fi
+}    
+    
+#
+#-------------------------------------------------------------------------------
+#  Opens dialog box tailing temporary content load log file
+#-------------------------------------------------------------------------------
+#
+cleanTailContentLoadLog () {
+
+    if [ ! -f ${WGET_CONTENTLOADLOG} ]; then
+        message_box "Content loading not running"
+        return 0;
+    else
+        WGET_PID=`ps -e | grep wget | awk '{print $1}'`
+        if [ -z ${WGET_PID} ]; then 
+            message_box "Content loading not running."
+            return 0;
+        fi
+    
+        grep -q "FINISHED" ${WGET_CONTENTLOADLOG}
+    
+        if [ $? -eq 0 ]; then
+            message_box "Content loading not running."
+            return 0;
+        fi
+    fi    
+
+    kickTail &
+
+    dialog \
+	      --timeout 1800 \
+          --backtitle $"${backtitle}" \
+	      --title "ContentLog" \
+	      --tailbox ${tmpdir}/contentload.log 0 0 ;
+
+    kill -9 `ps -a | grep ContentLoadMon | awk '{print $1}'` > /dev/null 2>&1;
+    
+    return 2;
+}
+
+#
+#-------------------------------------------------------------------------------
+#  /mcs/ServerLoadFeedBack?id={ID}&filename={URL}&filesize={FILESIZE}
+#  
+#  Updates the ContentLoaderMonitor for finished files
+#-------------------------------------------------------------------------------
+# 
+feedback() {
+
+    ID=$1;
+    MCS_URL=/mcs/ServerLoadFeedBack
+    if [ -f ${WGET_CONTENTLOADLOG} -a -r ${WGET_CONTENTLOADLOG} ]; then 
+        FILESLIST=`awk -F"'" '$1 ~ /Remote file no newer than local file/ { sub ("Remote file no newer than local file \`","/",$1); print $1}' ${WGET_CONTENTLOADLOG}`
+        for FILE in $FILESLIST; do 
+            if [ -f ${FILE} ] ; then 
+                FILESIZE=`ls -l ${FILE} | awk -F" " '{print $5}'`
+                addToLog "${FILE}" "${FILESIZE}"
+                lynx -auth ${MCS_USERNAME}:${MCS_PASSWORD} -dump "http://${MCS_SERVER}:${MCS_PORT}${MCS_URL}?id=${ID}&filename=${FILE}&filesize=${FILESIZE}" > ${tmpdir}/.config
+            fi  
+        done 
+    fi   
+    
+}
+
+addToLog() {
+    FILE=$1;
+    FILESIZE=$2
+    
+    grep -q "${FILE}" "${LOG_FILE}" &>/dev/null
+    if [ ${?} -ne 0 ] ; then
+        log_message "${FILE} [ ${FILESIZE} ] - download completed."
+    fi
+}
+
+kickTail() {
+    echo $'                                                                         \n \n \n \n \n \n \n '  > ${tmpdir}/contentload.log
+
+    exec /home/maintenance/menu/ContentLoadMonitor.sh ${WGET_CONTENTLOADLOG} >> ${tmpdir}/contentload.log 2>&1 /dev/null
+}
+
+#
+# ------------------------------------------------------
+# restarts network and named at the end
+# ------------------------------------------------------
+#
+toggle_mcs_connect() {
+     
+    WGET_PID=`ps -e | grep wget | awk '{print $1}'`
+
+    if [ ! -z ${WGET_PID} ]; then 
+        message_box "Cannot change when content loading is running. Please re-try later"
+        return;
+    fi 
+
+    if [ ! -z "${ORIGINAL_ETH_FILE}" ] ; then
+        if [ ! -e "${ORIGINAL_ETH_FILE}" ] ; then
+            log_message "Connected to MCS"
+            sudo /bin/cp /etc/sysconfig/network-scripts/ifcfg-eth0 ${ORIGINAL_ETH_FILE}
+            sudo /bin/cp  /etc/resolv.conf ${ORIGINAL_RESV_FILE}
+            sudo /usr/sbin/netconfig --bootproto=dhcp
+            sudo /bin/sync
+            log_message "DHCP client started"
+            info_box "Please wait...."
+            sudo /etc/init.d/network restart >> ${LOG_FILE} 2>&1
+            ping -c 10 10.100.45.25 >> ${LOG_FILE} 2>&1
+            if [ $? -eq 0 ]; then 
+                log_message "Connected to MCS"
+                message_box "Success"
+            else 
+                sudo /bin/cp ${ORIGINAL_ETH_FILE} /etc/sysconfig/network-scripts/ifcfg-eth0
+                sudo rm -f ${ORIGINAL_ETH_FILE}
+                sudo /bin/cp ${ORIGINAL_RESV_FILE} /etc/resolv.conf
+                sudo rm -f ${ORIGINAL_RESV_FILE}
+                sudo /bin/sync
+                sudo /etc/init.d/network restart >> ${LOG_FILE} 2>&1
+                sudo /etc/init.d/named restart >> ${LOG_FILE} 2>&1
+                message_box "Un-Successful"
+            
+            fi     
+        else
+            sudo /bin/cp ${ORIGINAL_ETH_FILE} /etc/sysconfig/network-scripts/ifcfg-eth0
+            sudo rm -f ${ORIGINAL_ETH_FILE}
+            sudo /bin/cp ${ORIGINAL_RESV_FILE} /etc/resolv.conf
+            sudo rm -f ${ORIGINAL_RESV_FILE}
+            sudo /bin/sync
+            log_message "Static IP given"
+            info_box "Please wait...."
+            sudo /etc/init.d/network restart >> ${LOG_FILE} 2>&1
+            sudo /etc/init.d/named restart >> ${LOG_FILE} 2>&1
+            log_message "Dis-Connected from MCS"
+            message_box "Success"
+        fi
+    fi
+}
+
+toggle_cronjob() {
+
+    if [ ! -z "${CRON_LOCK_FILE}" ] ; then
+        if [ ! -e "${CRON_LOCK_FILE}" ] ; then
+            sudo touch ${CRON_LOCK_FILE}
+            log_message "ContentLoadWatcher cron Job disabled"
+        else
+            sudo rm -f ${CRON_LOCK_FILE}
+            log_message "ContentLoadWatcher cron Job enabled"
+        fi
+    fi
+
+}
+
+##############################################################################
+#                         Copy progress
+##############################################################################
+copy_progress(){
+source="$1"
+target="$2"
+PROGRESS_TITLE="$3"
+stty intr undef
+rsync --progress $source $target | unbuffer -p sed -u 's/\r/\n/g' | awk '{print $2;fflush()}' | grep --line-buffered '%' | sed -u 's/%//g' | dialog --backtitle "$backtitle" --title "$title" --gauge "$PROGRESS_TITLE" 10 40 0
+} #end copy progress
+
+##############################################################################
+#                         Untar progress
+##############################################################################
+untar_progress(){
+source="$1"
+target="$2"
+PROGRESS_TITLE="$3"
+machine="$4"
+platform="$5"
+( ssh user@$machine "pv -n $source | tar xzf - -C $target --exclude=*.table opt/$platform/app" ) 2>&1 | dialog --backtitle "$backtitle" --title "$title" --gauge "$PROGRESS_TITLE" 10 40
+} #end untar progress
+
+##############################################################################
+#                         remote file check and remove
+##############################################################################
+check_remote(){
+target="$1"
+machine="$2"
+	if [ -n `ssh user@$machine "ls $target 2>/dev/null"` ]; then
+		info_box "Please wait..."
+		ssh user@$machine "rm $target -f 2>/dev/null"
+		ssh user@$machine "rm /tmp/.copy* -f 2>/dev/null"
+	else
+		ssh user@$machine "rm /tmp/.copy* -f 2>/dev/null"
+	fi
+} #end remove file progress
+
+##############################################################################
+#                         remote db file check and remove
+##############################################################################
+check_remotedb(){
+target="$1"
+machine="$2"
+                info_box "Please wait..."
+                ssh oracle@$machine "rm $target -f 2>/dev/null"
+} #end remove file progress
+
