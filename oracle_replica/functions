@@ -22,7 +22,7 @@ export timeout=180
 export logging=on
 export backup_dir="/opt/backup"
 #run sql-command password
-export sql_pwd="xxKpyKVwRBo6M"
+export sql_pwd="password"
 
 export downstream_logs="/opt/downstream/app/Server/logs/"
 export upstream_logs="/opt/upstream/app/Server/logs/"
