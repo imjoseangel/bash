@@ -7,7 +7,7 @@ python - <<END
 import urllib2
 import urllib
 
-url = 'https://10.100.20.94/Sourcing/inspector'
+url = 'https://192.168.0.1'
 username = 'debug'
 password = 'password'
 
@@ -19,7 +19,7 @@ handler = urllib2.HTTPBasicAuthHandler(p)
 opener = urllib2.build_opener(handler)
 urllib2.install_opener(opener)
 
-urlaql = 'https://10.100.20.94/Sourcing/inspector/aql'
+urlaql = 'https://192.168.0.1/aql'
 
 post_data = {'restrictQueryBy': 'None', 'query': 'SELECT Name, Dataloads.NodeName, Dataloads.State FROM ariba.analytics.server.DataloadSchedule include inactive ORDER BY Dataloads.TimeStarted desc,Dataloads.TimeScheduled desc', 'partitionNames': 'None', 'acrossCommunities': 'off', 'baseDomainVariant': 'off', 'joinType': 3, 'maxRecords': 500, 'userLocale': 'English', 'userPartition': 'Any', 'submit': 'Submit'}
 
