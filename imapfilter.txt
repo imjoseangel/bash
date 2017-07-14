@@ -1,0 +1,24 @@
+# Removes Gmail Trash emails automatically
+# Use with crontab:
+*/30 * * * * /usr/local/bin/imapfilter
+
+config.lua
+==========
+
+options.timeout = 120
+options.create = true
+options.subscribe = true
+options.expunge = true
+
+account = IMAP {
+  server = 'imap.gmail.com',
+  username = 'username@gmail.com',
+  password = 'apppassword',
+  ssl = 'tls1'
+}
+
+trash = account['[Gmail]/Trash']:is_undeleted()
+account['[Gmail]/Trash']:delete_messages(trash)
+
+spam = account['[Gmail]/Spam']:is_unanswered()
+account['[Gmail]/Spam']:delete_messages(spam)
