@@ -1,0 +1,48 @@
+netstat -np
+
+use lsof -p $PID and find the file descriptor (4th column)
+
+# lsof -p 1737 | grep "(deleted)"
+apache2 1737 root    6w   REG    0,25        0  207401  (deleted)/var/log/apache2/other_vhosts_access.log
+
+4th column is 6w, meaning file descriptor 6 and it was opened for writing (w).
+
+Then:
+
+gdb -p $PID
+p close($FD)
+
+eg:
+
+gdb -p 1737
+.....
+(gdb) p close(6)
+$1 = 0
+...
+Quit anyway? (y or n) y
+Detaching from program: /usr/lib/apache2/mpm-prefork/apache2, process 1737
+
+
+
+
+
+netstat -np
+You get a source/destination ip:port portstate pid/processname map
+locate the the socket's file descriptor in the process
+
+lsof -np $pid
+You get a list: process name, pid, user,fileDescriptor, ... a connection string.
+
+Locate the matching fileDescriptor number for the connection.
+
+Now connect the process:
+gdb -p $pid
+Now close the socket:
+
+call close($fileDescritor)
+
+//does not need ; at end.
+Then detach:
+
+quit
+And the socket is closed.
